@@ -1,0 +1,42 @@
+{
+  "name": "movie-review-app",
+  "version": "0.1.0",
+  "private": true,
+  "proxy": "https://9c96-103-106-239-104.ap.ngrok.io",
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@mui/icons-material": "^5.14.18",
+    "@mui/material": "^5.14.18",
+    "axios": "^1.7.9",
+    "bootstrap": "^5.3.3",
+    "cra-template": "1.2.0",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.9",
+    "react-dom": "^18.3.1",
+    "react-material-ui-carousel": "^3.4.2",
+    "react-player": "^2.16.0",
+    "react-router-dom": "^7.1.5",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
