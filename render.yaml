@@ -1,0 +1,33 @@
+services:
+  # Spring Boot API (built from Backend Spring/Dockerfile)
+  - type: web
+    name: movie-backend
+    runtime: docker
+    rootDir: "Backend Spring"
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: MONGO_URI            # your MongoDB Atlas connection string
+        sync: false
+      - key: MONGO_DATABASE
+        value: movielist
+      - key: ANTHROPIC_API_KEY    # optional — enables the AI features
+        sync: false
+      - key: ALLOWED_ORIGINS      # set to the frontend URL once it exists
+        sync: false
+
+  # React frontend (static)
+  - type: web
+    name: movie-frontend
+    runtime: static
+    rootDir: "Frontend React"
+    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL    # set to the backend URL once it exists
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
