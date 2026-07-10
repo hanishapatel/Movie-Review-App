@@ -17,14 +17,26 @@ public class MovieController {
     private MovieService movieService;
 
     @GetMapping
-    public ResponseEntity<List<Movie>> getallMovies() {
-        List<Movie> movies = movieService.allMovies();
-        return ResponseEntity.ok(movies);
+    public ResponseEntity<List<Movie>> getAllMovies(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String sort) {
+        return ResponseEntity.ok(movieService.allMovies(search, genre, sort));
+    }
+
+    @GetMapping("/genres")
+    public ResponseEntity<List<String>> getGenres() {
+        return ResponseEntity.ok(movieService.allGenres());
+    }
+
+    @GetMapping("/trending")
+    public ResponseEntity<List<Movie>> getTrending(
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(movieService.trending(limit));
     }
 
     @GetMapping("/{imdbId}")
-    public ResponseEntity<Optional<Movie>> getSingleMovie(@PathVariable String imdbId){
-        return new ResponseEntity<Optional<Movie>>(movieService.findMovieByImdbId(imdbId), HttpStatus.OK);
+    public ResponseEntity<Optional<Movie>> getSingleMovie(@PathVariable String imdbId) {
+        return new ResponseEntity<>(movieService.findMovieByImdbId(imdbId), HttpStatus.OK);
     }
-
 }

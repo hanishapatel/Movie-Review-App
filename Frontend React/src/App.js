@@ -1,66 +1,6 @@
-// import "./App.css";
-// import api from "./api/axiosConfig";
-// import { useEffect, useState } from "react";
-// import Layout from "./components/layout";
-// import Home from "./components/home/Home";
-// import { Routes, Route } from "react-router-dom";
-// import Header from "./components/header/header";
-// import Trailer from "./components/trailer/Trailer";
-
-// function App() {
-//   const [movies, setMovies] = useState();
-//   const [movie, setMovie] = useState();
-//   const [reviews, setReviews] = useState([]);
-//   const getMovies = async () => {
-//     try {
-//       const response = await api.get("/api/v1/movies");
-//       console.log(response.data);
-//       setMovies(response.data);
-//     } catch (err) {
-//       console.log(err);
-//     }
-//   }
-//   const getMovieData = async (movieId) => {
-
-//     try
-//     {
-//         const response = await api.get(`/api/v1/movies/${movieId}`);
-
-//         const singleMovie = response.data;
-
-//         setMovie(singleMovie);
-
-//         setReviews(singleMovie.reviews);
-
-//     }
-//     catch (error)
-//     {
-//       console.error(error);
-//     }
-
-//   }
-
-//   useEffect(() => {
-//     getMovies();
-//   }, []);
-
-//   return (
-//     <div className="App">
-//       <Header />
-//       <Routes>
-//         <Route path="/" element={<Layout />}>
-//           <Route path="/" element={<Home movies={movies} />}></Route>
-//           <Route path="/Trailer/:ytTrailerId" element={<Trailer />}></Route>
-//         </Route>
-//       </Routes>
-//     </div>
-//   );
-// }
-
-// export default App;
 import "./App.css";
 import api from "./api/axiosConfig";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Layout from "./components/layout";
 import { Routes, Route } from "react-router-dom";
 import Home from "./components/home/Home";
@@ -70,45 +10,91 @@ import Reviews from "./components/reviews/Reviews";
 import NotFound from "./components/notFound/NotFound";
 
 function App() {
-  const [movies, setMovies] = useState();
-  const [movie, setMovie] = useState();
+  const [movies, setMovies] = useState([]);
+  const [genres, setGenres] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const [genre, setGenre] = useState("All");
+  const [sort, setSort] = useState("rating");
+  const [ai, setAi] = useState(null); // null | { loading, results, explanation, error, message, query }
+
+  const [movie, setMovie] = useState(null);
   const [reviews, setReviews] = useState([]);
 
-  const getMovies = async () => {
+  const getMovies = useCallback(async () => {
     try {
-      const response = await api.get("/api/v1/movies");
-
-      setMovies(response.data);
+      const params = {};
+      if (genre && genre !== "All") params.genre = genre;
+      if (sort) params.sort = sort;
+      const res = await api.get("/api/v1/movies", { params });
+      setMovies(res.data);
     } catch (err) {
       console.log(err);
     }
-  };
+  }, [genre, sort]);
+
+  useEffect(() => {
+    getMovies();
+  }, [getMovies]);
+
+  useEffect(() => {
+    api.get("/api/v1/movies/genres").then((r) => setGenres(r.data)).catch(() => {});
+    api.get("/api/v1/movies/trending").then((r) => setTrending(r.data)).catch(() => {});
+  }, []);
 
   const getMovieData = async (movieId) => {
     try {
-      const response = await api.get(`/api/v1/movies/${movieId}`);
-
-      const singleMovie = response.data;
-
+      const res = await api.get(`/api/v1/movies/${movieId}`);
+      const singleMovie = res.data;
       setMovie(singleMovie);
-
-      setReviews(singleMovie.reviews);
+      setReviews(singleMovie.reviewIds || []); // API returns reviewIds, not reviews
     } catch (error) {
       console.error(error);
     }
   };
 
-  useEffect(() => {
-    getMovies();
-  }, []);
+  const aiSearch = async (query) => {
+    setAi({ loading: true, query });
+    try {
+      const res = await api.post("/api/v1/ai/search", { query });
+      setAi({
+        loading: false,
+        query,
+        results: res.data.results || [],
+        explanation: res.data.explanation,
+        configured: res.data.configured,
+        message: res.data.message,
+        error: res.data.error,
+      });
+    } catch (e) {
+      setAi({ loading: false, query, error: "Couldn't reach the AI search service." });
+    }
+  };
+
+  const clearAi = () => setAi(null);
 
   return (
     <div className="App">
       <Header />
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route path="/" element={<Home movies={movies} />}></Route>
-          <Route path="/Trailer/:ytTrailerId" element={<Trailer />}></Route>
+          <Route
+            path="/"
+            element={
+              <Home
+                movies={movies}
+                trending={trending}
+                genres={genres}
+                genre={genre}
+                setGenre={setGenre}
+                sort={sort}
+                setSort={setSort}
+                ai={ai}
+                aiSearch={aiSearch}
+                clearAi={clearAi}
+              />
+            }
+          />
+          <Route path="/Trailer/:ytTrailerId" element={<Trailer />} />
           <Route
             path="/Reviews/:movieId"
             element={
@@ -116,11 +102,10 @@ function App() {
                 getMovieData={getMovieData}
                 movie={movie}
                 reviews={reviews}
-                setReviews={setReviews}
               />
             }
-          ></Route>
-          <Route path="*" element={<NotFound />}></Route>
+          />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </div>
