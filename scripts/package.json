@@ -1,0 +1,9 @@
+{
+  "name": "movie-seeder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Seed the movie catalog from TMDB into MongoDB",
+  "dependencies": {
+    "mongodb": "^6.8.0"
+  }
+}
