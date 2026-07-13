@@ -25,7 +25,6 @@ services:
     name: movie-frontend
     runtime: static
     rootDir: "Frontend React"
-    plan: free
     buildCommand: npm install && npm run build
     staticPublishPath: build
     envVars:
