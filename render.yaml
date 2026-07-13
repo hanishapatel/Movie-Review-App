@@ -13,7 +13,9 @@ services:
         value: movielist
       - key: ANTHROPIC_API_KEY    # optional — enables the AI features
         sync: false
-      - key: TMDB_API_KEY         # optional — auto-seeds ~100 movies if DB is empty
+      - key: OMDB_API_KEY         # auto-seeds movies (Amazon posters — works where TMDB is blocked)
+        sync: false
+      - key: TMDB_API_KEY         # alternative seed source (richer, but blocked on some ISPs)
         sync: false
       - key: ALLOWED_ORIGINS      # set to the frontend URL once it exists
         sync: false
