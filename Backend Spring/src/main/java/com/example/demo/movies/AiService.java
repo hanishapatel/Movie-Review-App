@@ -4,7 +4,6 @@ import com.anthropic.client.AnthropicClient;
 import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.models.messages.Message;
 import com.anthropic.models.messages.MessageCreateParams;
-import com.anthropic.models.messages.Model;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -182,7 +181,7 @@ public class AiService {
 
     private String ask(String prompt) {
         MessageCreateParams params = MessageCreateParams.builder()
-                .model(Model.CLAUDE_OPUS_4_8)
+                .model("claude-opus-4-8")
                 .maxTokens(1500L)
                 .addUserMessage(prompt)
                 .build();
