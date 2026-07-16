@@ -15,12 +15,14 @@ function App() {
   const [trending, setTrending] = useState([]);
   const [genre, setGenre] = useState("All");
   const [sort, setSort] = useState("rating");
+  const [loading, setLoading] = useState(true);
   const [ai, setAi] = useState(null); // null | { loading, results, explanation, error, message, query }
 
   const [movie, setMovie] = useState(null);
   const [reviews, setReviews] = useState([]);
 
   const getMovies = useCallback(async () => {
+    setLoading(true);
     try {
       const params = {};
       if (genre && genre !== "All") params.genre = genre;
@@ -29,6 +31,8 @@ function App() {
       setMovies(res.data);
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoading(false);
     }
   }, [genre, sort]);
 
@@ -82,6 +86,7 @@ function App() {
             element={
               <Home
                 movies={movies}
+                loading={loading}
                 trending={trending}
                 genres={genres}
                 genre={genre}

@@ -10,6 +10,7 @@ const SORTS = [
 
 const Home = ({
   movies = [],
+  loading = false,
   trending = [],
   genres = [],
   genre,
@@ -126,10 +127,13 @@ const Home = ({
               <span className="bar" />
               {genre === "All" ? "All movies" : genre}
             </div>
-            {movies.length === 0 ? (
+            {loading && movies.length === 0 ? (
               <p className="muted">
-                No movies to show. Is the backend running on :8080?
+                Loading movies… the server may take up to ~50s to wake up on the
+                first visit.
               </p>
+            ) : movies.length === 0 ? (
+              <p className="muted">No movies found.</p>
             ) : (
               <div className="grid">
                 {movies.map((m) => (
