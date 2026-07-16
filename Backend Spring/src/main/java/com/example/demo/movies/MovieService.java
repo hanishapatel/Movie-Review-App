@@ -14,13 +14,36 @@ public class MovieService {
     @Autowired
     private MovieRepository movieRepository;
 
+    // In-memory cache of the decorated catalog. The catalog rarely changes, so
+    // serving browse requests from memory avoids a Mongo round-trip on every
+    // click — a big win on low-CPU / free instances. Detail pages
+    // (findMovieByImdbId) stay uncached so newly posted reviews show instantly.
+    private static final long TTL_MS = 5 * 60 * 1000;
+    private volatile List<Movie> cache;
+    private volatile long cacheAt;
+
+    private synchronized List<Movie> catalog() {
+        long now = System.currentTimeMillis();
+        if (cache == null || now - cacheAt > TTL_MS) {
+            List<Movie> movies = movieRepository.findAll();
+            movies.forEach(this::decorate);
+            cache = movies;
+            cacheAt = now;
+        }
+        return cache;
+    }
+
+    /** Drop the cache so the next read reflects new data (e.g. after a review). */
+    public void invalidate() {
+        cache = null;
+    }
+
     /**
      * All movies, optionally filtered by a title search and/or genre, and sorted.
      * sort: "rating" | "reviews" | "title" | "date" (null/other = default order).
      */
     public List<Movie> allMovies(String search, String genre, String sort) {
-        List<Movie> movies = movieRepository.findAll();
-        movies.forEach(this::decorate);
+        List<Movie> movies = catalog();
 
         if (search != null && !search.isBlank()) {
             String q = search.toLowerCase();
@@ -55,7 +78,7 @@ public class MovieService {
 
     /** Distinct, sorted list of every genre in the catalog. */
     public List<String> allGenres() {
-        return movieRepository.findAll().stream()
+        return catalog().stream()
                 .filter(m -> m.getGenres() != null)
                 .flatMap(m -> m.getGenres().stream())
                 .distinct()
@@ -65,9 +88,7 @@ public class MovieService {
 
     /** Most-reviewed, then highest-rated. */
     public List<Movie> trending(int limit) {
-        List<Movie> movies = movieRepository.findAll();
-        movies.forEach(this::decorate);
-        return movies.stream()
+        return catalog().stream()
                 .sorted(Comparator
                         .comparingInt((Movie m) -> m.getReviewCount() == null ? 0 : m.getReviewCount())
                         .thenComparingDouble(m -> m.getAverageRating() == null ? 0.0 : m.getAverageRating())

@@ -17,6 +17,9 @@ public class ReviewService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private MovieService movieService;
+
     public Review createReview(String reviewBody, Integer rating, String author, boolean spoiler, String imdbId) {
         String displayName = (author == null || author.isBlank()) ? "Anonymous" : author.trim();
         Review review = repository.insert(new Review(reviewBody, rating, displayName, spoiler,
@@ -25,6 +28,7 @@ public class ReviewService {
                 .matching(Criteria.where("imdbId").is(imdbId))
                 .apply(new Update().push("reviewIds").value(review))
                 .first();
+        movieService.invalidate();
         return review;
     }
 
@@ -35,6 +39,7 @@ public class ReviewService {
         if (rating != null) review.setRating(rating);
         if (spoiler != null) review.setSpoiler(spoiler);
         review.setUpdated(LocalDateTime.now());
+        movieService.invalidate();
         return repository.save(review);
     }
 
@@ -52,5 +57,6 @@ public class ReviewService {
                 .apply(new Update().pull("reviewIds", objectId))
                 .all();
         repository.deleteById(objectId);
+        movieService.invalidate();
     }
 }
